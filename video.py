@@ -13,7 +13,7 @@ def get_formats(url):
         return [f for f in formats if f.get("height")]
 
 def download_video(url, format_id):
-    """دانلود ویدیو با فرمت انتخاب شده"""
+    
     ydl_opts_download = {
         "format": format_id,
         "outtmpl": os.path.join(DOWNLOAD_FOLDER, "video_%(height)sp.%(ext)s"),
