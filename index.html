@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+            background-color: #f9f9f9;
+        }
+        h2 {
+            color: #333;
+        }
+        input[type="text"] {
+            width: 400px;
+            padding: 8px;
+        }
+        button {
+            padding: 8px 12px;
+            margin-top: 10px;
+        }
+        .message {
+            margin-top: 20px;
+            font-weight: bold;
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .formats {
+            margin-top: 20px;
+        }
+        .formats input {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>YouTube Video Downloader</h2>
+
+    {% if not formats %}
+    <form method="post" action="/">
+        <label>Enter YouTube URL:</label><br>
+        <input type="text" name="url" required>
+        <button type="submit">Check Formats</button>
+    </form>
+    {% else %}
+    <div class="formats">
+        <h3>Available Qualities:</h3>
+        <form method="post" action="/download">
+            {% for i, f in enumerate(formats) %}
+                <input type="radio" name="format_id" value="{{ f['format_id'] }}" required>
+                [{{ i }}] {{ f['format_id'] }} | {{ f.get('height', '?') }}p | {{ f['ext'] }} <br>
+            {% endfor %}
+            <input type="hidden" name="url" value="{{ url }}">
+            <button type="submit">Download Selected</button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if message %}
+        <p class="message">{{ message }}</p>
+    {% endif %}
+</body>
+</html>
