@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
-import video  # <-- اینجا کد video.py را وارد کردیم
-
+import video  
 app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
