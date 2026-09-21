@@ -41,7 +41,7 @@ The long-term goal is to combine the power of yt-dlp with a modern download mana
 
 ### Download Manager
 
-* [ ] Download queue
+* [x] Download queue
 * [ ] Multiple simultaneous downloads
 * [ ] Download progress tracking
 * [ ] Download speed
@@ -314,15 +314,15 @@ Development is divided into several phases. Completed features will be marked di
 ### Phase 2 — Download Manager
 
 * [ ] Implement download queue
-* [ ] Add progress tracking
-* [ ] Add download speed
-* [ ] Add ETA
-* [ ] Add pause/resume
-* [ ] Add cancellation
-* [ ] Add retry functionality
-* [ ] Add concurrent downloads
+* [x] Add progress tracking
+* [x] Add download speed
+* [x] Add ETA
+* [x] Add pause/resume
+* [x] Add cancellation
+* [x] Add retry functionality
+* [x] Add concurrent downloads
 * [ ] Add download priority
-* [ ] Add queue management UI
+* [x] Add queue management UI
 
 ### Phase 3 — Advanced Media Features
 
