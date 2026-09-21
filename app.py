@@ -1,28 +1,43 @@
 from flask import Flask, render_template, request
-import video  
+from backend.analyzer import analyze
+from backend.downloader import download
 
 app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    media = None
+    message = None
+    url = request.form.get("url", "").strip()
+
     if request.method == "POST":
-        url = request.form.get("url")
         try:
-            formats = video.get_formats(url)
+            media = analyze(url)
         except Exception as e:
-            return render_template("index.html", formats=None, message=f"Error: {e}")
-        return render_template("index.html", formats=formats, url=url, message=None)
-    return render_template("index.html", formats=None, message=None)
+            message = str(e)
+
+    return render_template("index.html", media=media, url=url, message=message)
 
 @app.route("/download", methods=["POST"])
-def download():
-    url = request.form.get("url")
-    format_id = request.form.get("format_id")
+def download_route():
+    url = request.form.get("url", "").strip()
+    format_id = request.form.get("format_id", "").strip()
+
     try:
-        video.download_video(url, format_id)
+        download(url, format_id)
+        return render_template(
+            "index.html",
+            media=None,
+            url=url,
+            message="Download completed. Check the downloads folder."
+        )
     except Exception as e:
-        return render_template("index.html", formats=None, message=f"Download failed: {e}")
-    return render_template("index.html", formats=None, message="Download completed! Check the 'downloads' folder.")
+        return render_template(
+            "index.html",
+            media=None,
+            url=url,
+            message=f"Download failed: {e}"
+        )
 
 if __name__ == "__main__":
     app.run(debug=True)
