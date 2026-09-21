@@ -33,7 +33,7 @@
                 <span class="eyebrow">VIDEO</span>
                 <h2>{{ media.title }}</h2>
                 <p>{{ media.uploader }}</p>
-                {% if media.duration %}<small>Duration: {{ media.duration }}s</small>{% endif %}
+                {% if media.duration %}<small>Duration: {{ media.duration }}</small>{% endif %}
             </div>
         </div>
 
@@ -43,7 +43,7 @@
             <select id="format_id" name="format_id" required>
                 {% for f in media.formats %}
                 <option value="{{ f.format_id }}">
-                    {{ f.height }}p · {{ f.ext|upper }} · {{ "Video + Audio" if f.has_audio else "Video only" }}
+                    {{ f.height }}p · {{ f.ext|upper }} · {{ "Video + Audio" if f.has_audio else "Video only" }}{% if f.filesize %} · {{ f.filesize }}{% endif %}
                 </option>
                 {% endfor %}
             </select>
