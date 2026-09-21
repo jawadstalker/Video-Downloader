@@ -22,6 +22,10 @@ def index():
 def download_route():
     url = request.form.get("url", "").strip()
     format_id = request.form.get("format_id", "").strip()
+    if mode not in {"video", "audio"}:
+        mode = "video"
+    if audio_format not in {"mp3", "m4a", "wav"}:
+        audio_format = "mp3"
     mode = request.form.get("mode", "video").strip()
     audio_format = request.form.get("audio_format", "mp3").strip()
 
