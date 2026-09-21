@@ -60,10 +60,15 @@
                 <option value="wav">WAV</option>
             </select>
 
-            <button class="download" type="submit">Download</button>
+            <button class="download" type="submit">Add to Downloads</button>
         </form>
     </section>
     {% endif %}
+<section class="card downloads-card">
+    <div class="section-head"><div><span class="eyebrow">DOWNLOAD MANAGER</span><h2>Downloads</h2></div></div>
+    <div id="downloads"></div>
+</section>
 </main>
+<script src="{{ url_for('static', filename='js/queue.js') }}"></script>
 </body>
 </html>
