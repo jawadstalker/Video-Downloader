@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Video Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<main class="container">
+    <section class="hero">
+        <span class="eyebrow">MEDIA DOWNLOADER</span>
+        <h1>Download media<br><span>without the clutter.</span></h1>
+        <p>Analyze a URL, choose the quality, and download your media locally.</p>
+    </section>
+
+    <form class="search" method="post">
+        <input name="url" type="url" value="{{ url or '' }}" placeholder="Paste a video URL..." required>
+        <button type="submit">Analyze</button>
+    </form>
+
+    {% if message %}
+    <div class="message error">{{ message }}</div>
+    {% endif %}
+
+    {% if media %}
+    <section class="card">
+        <div class="media-head">
+            {% if media.thumbnail %}
+            <img src="{{ media.thumbnail }}" alt="Thumbnail">
+            {% endif %}
+            <div>
+                <span class="eyebrow">VIDEO</span>
+                <h2>{{ media.title }}</h2>
+                <p>{{ media.uploader }}</p>
+                {% if media.duration %}<small>Duration: {{ media.duration }}s</small>{% endif %}
+            </div>
+        </div>
+
+        <form method="post" action="{{ url_for('download') }}">
+            <input type="hidden" name="url" value="{{ url }}">
+            <label for="format_id">Quality</label>
+            <select id="format_id" name="format_id" required>
+                {% for f in media.formats %}
+                <option value="{{ f.format_id }}">
+                    {{ f.height }}p · {{ f.ext|upper }} · {{ "Video + Audio" if f.has_audio else "Video only" }}
+                </option>
+                {% endfor %}
+            </select>
+            <button class="download" type="submit">Download Selected</button>
+        </form>
+    </section>
+    {% endif %}
+</main>
+</body>
+</html>
