@@ -1,81 +1,570 @@
-# YouTubeDL Interactive Downloader
+# Video Downloader
 
-A simple yet powerful **command-line video downloader** built with [yt-dlp](https://github.com/yt-dlp/yt-dlp).  
-This script allows users to **view all available video qualities**, select their preferred format, and download it directly.  
-It also detects potential **VPN or region-blocking issues** and provides helpful instructions when needed.
+A modern, cross-platform video and media downloader powered by [yt-dlp](https://github.com/yt-dlp/yt-dlp) and FFmpeg.
+
+The project is designed to provide a clean and powerful interface for downloading videos, audio, playlists, subtitles, thumbnails, and other supported media from a wide range of platforms supported by yt-dlp.
+
+The long-term goal is to combine the power of yt-dlp with a modern download manager, an intuitive user interface, and advanced configuration options while keeping the application simple and easy to use.
 
 ---
 
 ## Features
-- Lists all available video qualities (resolution, format, and extension).
-- Lets the user select a specific quality to download.
-- Handles connection and site errors gracefully.
-- Detects VPN or region restrictions and advises the user accordingly.
-- Saves the downloaded video with a clear name pattern:  
-  `video_[height]p.[extension]`
+
+### Core Downloader
+
+* [ ] Video URL analysis
+* [ ] Automatic metadata extraction
+* [ ] Video title and channel information
+* [ ] Thumbnail preview
+* [ ] Video duration
+* [ ] Upload date
+* [ ] View count
+* [ ] Available formats and codecs
+* [ ] Available resolutions
+* [ ] Audio stream detection
+* [ ] Subtitle detection
+* [ ] Estimated file size
+* [ ] Best available quality selection
+* [ ] Manual quality selection
+* [ ] MP4 downloads
+* [ ] MKV downloads
+* [ ] WEBM downloads
+* [ ] MOV downloads
+* [ ] Audio-only downloads
+* [ ] MP3 extraction
+* [ ] M4A extraction
+* [ ] WAV extraction
+* [ ] Custom audio bitrate
+* [ ] FFmpeg integration
+* [ ] Automatic video/audio stream merging
+* [ ] User-friendly download errors
+
+### Download Manager
+
+* [ ] Download queue
+* [ ] Multiple simultaneous downloads
+* [ ] Download progress tracking
+* [ ] Download speed
+* [ ] ETA calculation
+* [ ] Pause downloads
+* [ ] Resume downloads
+* [ ] Cancel downloads
+* [ ] Retry failed downloads
+* [ ] Download priority
+* [ ] Concurrent download limit
+* [ ] Download state management
+
+### Playlist and Batch Downloads
+
+* [ ] Playlist detection
+* [ ] Playlist preview
+* [ ] Select individual playlist items
+* [ ] Download entire playlists
+* [ ] Batch URL input
+* [ ] Batch download management
+* [ ] Channel downloads
+* [ ] Playlist-specific output folders
+* [ ] Automatic filename organization
+
+### Subtitles and Metadata
+
+* [ ] Subtitle detection
+* [ ] Subtitle language selection
+* [ ] Automatic subtitle download
+* [ ] Embedded subtitles
+* [ ] External subtitle files
+* [ ] Metadata preservation
+* [ ] Custom metadata
+* [ ] Thumbnail embedding
+* [ ] Chapter information
+* [ ] Description preservation
+
+### User Interface
+
+* [ ] Modern dashboard
+* [ ] Responsive layout
+* [ ] Dark mode
+* [ ] Light mode
+* [ ] System theme detection
+* [ ] Modern video information cards
+* [ ] Quality selection interface
+* [ ] Download progress cards
+* [ ] Queue management interface
+* [ ] Toast notifications
+* [ ] Loading states
+* [ ] Error states
+* [ ] Empty states
+* [ ] Smooth animations
+* [ ] Responsive mobile layout
+
+### Download History
+
+* [ ] Download history
+* [ ] Search history
+* [ ] Filter downloads
+* [ ] Sort downloads
+* [ ] Redownload previous items
+* [ ] Remove history entries
+* [ ] Clear download history
+* [ ] Open downloaded files
+* [ ] Open download directory
+
+### Advanced Configuration
+
+* [ ] Browser cookie support
+* [ ] Proxy configuration
+* [ ] Download speed limiter
+* [ ] Custom HTTP headers
+* [ ] Browser detection
+* [ ] Clipboard URL monitoring
+* [ ] Duplicate download detection
+* [ ] Storage usage monitoring
+* [ ] Download directory selection
+* [ ] Filename templates
+* [ ] Network configuration
+
+### Storage Management
+
+* [ ] Download directory management
+* [ ] Storage usage statistics
+* [ ] Available disk space detection
+* [ ] Download size estimation
+* [ ] Automatic file organization
+* [ ] File cleanup tools
+* [ ] Duplicate file detection
+
+### System Integration
+
+* [ ] System tray support
+* [ ] Background downloads
+* [ ] Desktop notifications
+* [ ] Clipboard monitoring
+* [ ] Open downloaded file
+* [ ] Open containing folder
+* [ ] Application startup configuration
 
 ---
 
-## Requirements
-Make sure you have the following installed:
-- Python 3.7+
-- yt-dlp
+## Supported Media
 
-Install yt-dlp using pip:
+The application relies on yt-dlp for media extraction.
+
+Supported websites and media services therefore depend on the current extractor support provided by yt-dlp.
+
+The application is designed to support:
+
+* Video platforms
+* Social media platforms
+* Audio platforms
+* Streaming services supported by yt-dlp
+* Individual videos
+* Playlists
+* Channels
+* Audio-only content
+
+Availability may vary depending on the platform, region, authentication requirements, and changes made by individual services.
+
+---
+
+## Output Formats
+
+### Video
+
+* MP4
+* MKV
+* WEBM
+* MOV
+
+### Audio
+
+* MP3
+* M4A
+* WAV
+
+The available output formats may depend on the source media and installed FFmpeg capabilities.
+
+---
+
+## Quality Selection
+
+Instead of requiring users to understand yt-dlp format IDs, the application aims to provide a simple quality selection system.
+
+Example options:
+
+| Quality | Description                               |
+| ------- | ----------------------------------------- |
+| Best    | Highest available video and audio quality |
+| 4K      | Up to 2160p                               |
+| 1440p   | Up to 1440p                               |
+| 1080p   | Full HD                                   |
+| 720p    | HD                                        |
+| 480p    | Standard definition                       |
+| 360p    | Low bandwidth                             |
+| Audio   | Audio-only download                       |
+
+The application will automatically select compatible video and audio streams when required.
+
+---
+
+## Architecture
+
+The project is being developed with a modular architecture so that downloading, analysis, queue management, metadata processing, and the user interface remain separated.
+
+Planned structure:
+
+```text
+Video-Downloader/
+│
+├── app.py
+│
+├── backend/
+│   ├── __init__.py
+│   ├── analyzer.py
+│   ├── downloader.py
+│   ├── formats.py
+│   ├── playlist.py
+│   ├── subtitles.py
+│   ├── metadata.py
+│   ├── thumbnails.py
+│   ├── ffmpeg.py
+│   ├── queue.py
+│   ├── history.py
+│   ├── settings.py
+│   └── utils.py
+│
+├── templates/
+│   ├── index.html
+│   ├── download.html
+│   ├── history.html
+│   └── settings.html
+│
+├── static/
+│   ├── css/
+│   │   ├── style.css
+│   │   └── components.css
+│   │
+│   └── js/
+│       ├── app.js
+│       ├── downloads.js
+│       ├── queue.js
+│       └── settings.js
+│
+├── downloads/
+│
+├── tests/
+│
+├── requirements.txt
+├── .gitignore
+├── LICENSE
+└── README.md
+```
+
+---
+
+## Technology Stack
+
+### Backend
+
+* Python
+* Flask
+* yt-dlp
+
+### Media Processing
+
+* FFmpeg
+
+### Frontend
+
+* HTML5
+* CSS3
+* JavaScript
+
+### Storage
+
+The application is designed to support local storage for:
+
+* Download history
+* Application settings
+* Download metadata
+* Queue state
+
+---
+
+## Development Roadmap
+
+Development is divided into several phases. Completed features will be marked directly in this README.
+
+### Phase 1 — Core Downloader
+
+* [ ] Refactor project architecture
+* [ ] Create backend modules
+* [ ] Implement media analyzer
+* [ ] Display media metadata
+* [ ] Display thumbnail
+* [ ] Display available qualities
+* [ ] Implement quality selector
+* [ ] Implement MP4 downloads
+* [ ] Implement audio-only downloads
+* [ ] Implement MP3/M4A/WAV extraction
+* [ ] Integrate FFmpeg
+* [ ] Merge separate video and audio streams
+* [ ] Improve error handling
+* [ ] Add basic validation
+
+### Phase 2 — Download Manager
+
+* [ ] Implement download queue
+* [ ] Add progress tracking
+* [ ] Add download speed
+* [ ] Add ETA
+* [ ] Add pause/resume
+* [ ] Add cancellation
+* [ ] Add retry functionality
+* [ ] Add concurrent downloads
+* [ ] Add download priority
+* [ ] Add queue management UI
+
+### Phase 3 — Advanced Media Features
+
+* [ ] Playlist support
+* [ ] Batch URL downloads
+* [ ] Channel downloads
+* [ ] Subtitle support
+* [ ] Metadata handling
+* [ ] Thumbnail embedding
+* [ ] Chapter support
+* [ ] Filename templates
+* [ ] Automatic folder organization
+* [ ] Additional audio formats
+
+### Phase 4 — Professional UI
+
+* [ ] Redesign dashboard
+* [ ] Modern responsive layout
+* [ ] Dark theme
+* [ ] Light theme
+* [ ] System theme
+* [ ] Media preview cards
+* [ ] Quality cards
+* [ ] Download progress interface
+* [ ] Queue interface
+* [ ] Toast notifications
+* [ ] Loading states
+* [ ] Error states
+* [ ] Animations
+* [ ] Mobile-friendly interface
+
+### Phase 5 — History and Settings
+
+* [ ] Download history
+* [ ] History search
+* [ ] History filtering
+* [ ] History sorting
+* [ ] Redownload functionality
+* [ ] Settings page
+* [ ] Download directory configuration
+* [ ] Filename configuration
+* [ ] Storage management
+* [ ] Duplicate detection
+
+### Phase 6 — Advanced Networking
+
+* [ ] Cookie support
+* [ ] Browser cookie integration
+* [ ] Proxy support
+* [ ] Custom headers
+* [ ] Speed limiting
+* [ ] Network configuration
+* [ ] Authentication support where supported by yt-dlp
+
+Sensitive authentication information should be handled locally and should not be exposed in application logs.
+
+### Phase 7 — Desktop Integration
+
+* [ ] System tray
+* [ ] Background downloads
+* [ ] Desktop notifications
+* [ ] Clipboard monitoring
+* [ ] Automatic URL detection
+* [ ] Open downloaded files
+* [ ] Open download directory
+* [ ] Startup configuration
+
+### Phase 8 — Distribution
+
+* [ ] Windows executable
+* [ ] Windows installer
+* [ ] Linux distribution
+* [ ] macOS support
+* [ ] GitHub Releases
+* [ ] Version management
+* [ ] Release documentation
+* [ ] Application update mechanism
+* [ ] Production documentation
+
+---
+
+## Installation
+
+### Requirements
+
+* Python 3.10+
+* pip
+* FFmpeg
+* Internet connection
+
+### Clone the Repository
+
 ```bash
-pip install yt-dlp
+git clone https://github.com/jawadstalker/Video-Downloader.git
+cd Video-Downloader
 ```
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Run the Application
+
+```bash
+python app.py
+```
+
+The application will then be available through the local Flask server.
 
 ---
 
-## Usage
-1. Clone or download this repository.  
-2. Open a terminal in the project directory.  
-3. Run the script:
-   ```bash
-   python downloader.py
-   ```
-4. Enter the video URL when prompted.  
-5. Choose a video quality from the list shown.  
-6. The selected quality will be downloaded automatically.
+## FFmpeg
+
+FFmpeg is required for several media-processing operations, especially when:
+
+* Video and audio streams need to be merged
+* Audio needs to be extracted
+* Media needs to be converted
+* Metadata or thumbnails need to be embedded
+* Additional post-processing is required
+
+The application will eventually provide clear FFmpeg detection and configuration feedback instead of failing with an unclear system error.
 
 ---
 
-## Example Output
-```
-Enter the video URL: https://example.com/video
+## Security and Privacy
 
-Available video qualities:
+The application is designed primarily for local use.
 
-[0]  18  |  360p  |  mp4
-[1]  22  |  720p  |  mp4
-[2]  137 | 1080p  |  mp4
+Important principles:
 
-Enter the number of your desired quality: 2
+* Downloads are stored locally.
+* User URLs are processed locally through the application.
+* Authentication cookies should not be exposed in logs.
+* Sensitive configuration data should not be committed to the repository.
+* API credentials and cookies should never be hard-coded.
+* Temporary files should be cleaned up when no longer required.
 
-Downloading video with quality: 137...
+The project does not attempt to bypass authentication, DRM, access controls, or other technical restrictions imposed by content providers.
 
-Download completed successfully.
-```
-
----
-
-## VPN or Connection Errors
-If the website restricts access or the download fails with a connection error, you may see a message like this:
-
-```
-Connection or site error detected.
-The website may be blocking your connection due to VPN or region restrictions.
-Please try changing your VPN server or location and run the script again.
-```
-
-**Solution:**
-- Change your VPN location (for example, switch from Europe to the US).
-- Restart the script and try again.
+Users are responsible for complying with the terms of service, copyright laws, and applicable regulations when downloading content.
 
 ---
 
-## Notes
-- Some websites may block requests depending on their region or privacy settings.
-- If the script cannot find any formats, it usually means the site is not accessible through your current network or VPN.
-- yt-dlp supports a wide range of sites; see the official [supported sites list](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md).
+## Error Handling
+
+The application aims to provide clear errors instead of raw Python or yt-dlp exceptions.
+
+Examples include:
+
+* Invalid URL
+* Unsupported website
+* Video unavailable
+* Private content
+* Authentication required
+* Geo-restricted content
+* Network failure
+* FFmpeg unavailable
+* Insufficient disk space
+* Invalid format
+* Download interruption
+* File system errors
+
+---
+
+## Testing
+
+Testing will cover:
+
+* URL validation
+* Media analysis
+* Format detection
+* Quality selection
+* Audio extraction
+* Video/audio merging
+* Download management
+* Playlist handling
+* Subtitle handling
+* History management
+* Settings
+* Error handling
+
+A dedicated test suite will be expanded as new functionality is implemented.
+
+---
+
+## Project Status
+
+The project is actively under development.
+
+Current implementation status:
+
+| Component               | Status      |
+| ----------------------- | ----------- |
+| Basic Flask application | In Progress |
+| yt-dlp integration      | In Progress |
+| Media analysis          | Planned     |
+| Quality selection       | Planned     |
+| Audio extraction        | Planned     |
+| FFmpeg integration      | Planned     |
+| Download manager        | Planned     |
+| Playlist support        | Planned     |
+| Subtitle support        | Planned     |
+| Download history        | Planned     |
+| Modern UI               | Planned     |
+| Advanced settings       | Planned     |
+| Desktop integration     | Planned     |
+| Production packaging    | Planned     |
+
+The checklist above is the primary development roadmap and will be updated as features are implemented.
+
+---
+
+## Contributing
+
+Contributions, bug reports, feature requests, and improvements are welcome.
+
+Before submitting a pull request:
+
+1. Keep changes focused.
+2. Follow the existing project structure.
+3. Avoid committing generated files.
+4. Test the affected functionality.
+5. Update documentation when necessary.
+6. Keep sensitive information out of commits.
+
+---
+
+## Disclaimer
+
+This project is intended for legitimate personal, educational, and development purposes.
+
+Users are responsible for ensuring that their use of the application complies with applicable laws, copyright requirements, and the terms of service of the websites they access.
+
+The project does not guarantee permanent compatibility with any third-party service. Website changes may require updates to yt-dlp or the application itself.
+
+---
+
+## License
+
+This project is released under the MIT License.
+
+See the `LICENSE` file for the complete license text.
