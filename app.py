@@ -22,9 +22,11 @@ def index():
 def download_route():
     url = request.form.get("url", "").strip()
     format_id = request.form.get("format_id", "").strip()
+    mode = request.form.get("mode", "video").strip()
+    audio_format = request.form.get("audio_format", "mp3").strip()
 
     try:
-        download(url, format_id)
+        download(url, format_id, mode, audio_format)
         return render_template(
             "index.html",
             media=None,
