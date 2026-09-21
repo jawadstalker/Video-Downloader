@@ -296,20 +296,20 @@ Development is divided into several phases. Completed features will be marked di
 
 ### Phase 1 — Core Downloader
 
-* [ ] Refactor project architecture
-* [ ] Create backend modules
-* [ ] Implement media analyzer
-* [ ] Display media metadata
-* [ ] Display thumbnail
-* [ ] Display available qualities
-* [ ] Implement quality selector
-* [ ] Implement MP4 downloads
-* [ ] Implement audio-only downloads
-* [ ] Implement MP3/M4A/WAV extraction
-* [ ] Integrate FFmpeg
-* [ ] Merge separate video and audio streams
-* [ ] Improve error handling
-* [ ] Add basic validation
+* [x] Refactor project architecture
+* [x] Create backend modules
+* [x] Implement media analyzer
+* [x] Display media metadata
+* [x] Display thumbnail
+* [x] Display available qualities
+* [x] Implement quality selector
+* [x] Implement MP4 downloads
+* [x] Implement audio-only downloads
+* [x] Implement MP3/M4A/WAV extraction
+* [x] Integrate FFmpeg
+* [x] Merge separate video and audio streams
+* [x] Improve error handling
+* [x] Add basic validation
 
 ### Phase 2 — Download Manager
 
