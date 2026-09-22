@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from backend.analyzer import analyze
+from backend.analyzer import analyze, analyze_playlist
 from backend.queue import manager
 
 app = Flask(__name__)
@@ -15,6 +15,25 @@ def index():
         except Exception as e:
             message = str(e) or "Unable to analyze the URL."
     return render_template("index.html", media=media, url=url, message=message, jobs=manager.all())
+
+@app.post("/api/playlist")
+def playlist():
+    url = request.json.get("url", "").strip()
+    try:
+        return jsonify(analyze_playlist(url))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.post("/api/batch")
+def batch():
+    data = request.json or {}
+    urls = [u.strip() for u in data.get("urls", []) if u.strip()]
+    format_id = data.get("format_id", "bestvideo")
+    mode = data.get("mode", "video")
+    audio_format = data.get("audio_format", "mp3")
+    if not urls:
+        return jsonify({"error": "No URLs provided."}), 400
+    return jsonify(manager.add_batch(urls, format_id, mode, audio_format))
 
 @app.route("/download", methods=["POST"])
 def download_route():
