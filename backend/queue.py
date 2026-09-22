@@ -16,6 +16,9 @@ class DownloadManager:
         self.lock = threading.Lock()
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
+    def add_batch(self, urls, format_id, mode="video", audio_format="mp3"):
+        return [self.add(url, format_id, mode, audio_format) for url in urls]
+
     def add(self, url, format_id, mode="video", audio_format="mp3"):
         job_id = uuid.uuid4().hex[:10]
         job = {
