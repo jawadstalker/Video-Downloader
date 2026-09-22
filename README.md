@@ -56,15 +56,15 @@ The long-term goal is to combine the power of yt-dlp with a modern download mana
 
 ### Playlist and Batch Downloads
 
-* [ ] Playlist detection
-* [ ] Playlist preview
+* [x] Playlist detection
+* [x] Playlist preview
 * [ ] Select individual playlist items
 * [ ] Download entire playlists
 * [ ] Batch URL input
-* [ ] Batch download management
+* [x] Batch download management
 * [ ] Channel downloads
 * [ ] Playlist-specific output folders
-* [ ] Automatic filename organization
+* [x] Automatic filename organization
 
 ### Subtitles and Metadata
 
@@ -327,7 +327,7 @@ Development is divided into several phases. Completed features will be marked di
 ### Phase 3 — Advanced Media Features
 
 * [ ] Playlist support
-* [ ] Batch URL downloads
+* [x] Batch URL downloads
 * [ ] Channel downloads
 * [ ] Subtitle support
 * [ ] Metadata handling
