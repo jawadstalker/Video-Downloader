@@ -18,6 +18,23 @@ def _duration(seconds):
     m, s = divmod(rem, 60)
     return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
 
+def analyze_playlist(url):
+    if not url or not url.strip():
+        raise ValueError("Please enter a valid playlist URL.")
+    opts = {"quiet": True, "no_warnings": True, "extract_flat": True}
+    with YoutubeDL(opts) as ydl:
+        info = ydl.extract_info(url.strip(), download=False)
+    entries = []
+    for item in info.get("entries") or []:
+        if item and item.get("url"):
+            entries.append({
+                "id": item.get("id"),
+                "title": item.get("title") or "Untitled",
+                "url": item.get("url"),
+                "duration": item.get("duration")
+            })
+    return {"title": info.get("title") or "Playlist", "count": len(entries), "entries": entries}
+
 def analyze(url):
     if not url or not url.strip():
         raise ValueError("Please enter a valid URL.")
