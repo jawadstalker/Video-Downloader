@@ -15,9 +15,12 @@
     </section>
 
     <section class="card tools-card">
-        <h2>Batch Downloads</h2>
-        <textarea id="batchUrls" placeholder="Paste one URL per line..."></textarea>
-        <button type="button" class="download" onclick="addBatch()">Add URLs to Queue</button>
+        <h2>Playlist</h2>
+        <form id="playlistForm">
+            <input id="playlistUrl" type="url" placeholder="Paste a playlist URL..." required>
+            <button type="submit">Analyze Playlist</button>
+        </form>
+        <div id="playlistResult"></div>
     </section>
 
     <form class="search" method="post">
@@ -25,16 +28,12 @@
         <button type="submit">Analyze</button>
     </form>
 
-    {% if message %}
-    <div class="message error">{{ message }}</div>
-    {% endif %}
+    {% if message %}<div class="message error">{{ message }}</div>{% endif %}
 
     {% if media %}
     <section class="card">
         <div class="media-head">
-            {% if media.thumbnail %}
-            <img src="{{ media.thumbnail }}" alt="Thumbnail">
-            {% endif %}
+            {% if media.thumbnail %}<img src="{{ media.thumbnail }}" alt="Thumbnail">{% endif %}
             <div>
                 <span class="eyebrow">VIDEO</span>
                 <h2>{{ media.title }}</h2>
@@ -49,23 +48,21 @@
             <select id="format_id" name="format_id" required>
                 {% for f in media.formats %}
                 <option value="{{ f.format_id }}">
-                    {{ f.height }}p · {{ f.ext|upper }} · {{ "Video + Audio" if f.has_audio else "Video only" }}{% if f.filesize %} · {{ f.filesize }}{% endif %}
+                    {{ f.height }}p · {{ f.ext|upper }} · {{ "Video + Audio" if f.has_audio else "Video + Audio (merge)" }}{% if f.filesize %} · {{ f.filesize }}{% endif %}
                 </option>
                 {% endfor %}
             </select>
             <label for="mode">Download Type</label>
             <select id="mode" name="mode">
-                <option value="video">Video (MP4)</option>
+                <option value="video">Video</option>
                 <option value="audio">Audio Only</option>
             </select>
-
             <label for="audio_format">Audio Format</label>
             <select id="audio_format" name="audio_format">
                 <option value="mp3">MP3</option>
                 <option value="m4a">M4A</option>
                 <option value="wav">WAV</option>
             </select>
-
             <button class="download" type="submit">Add to Downloads</button>
         </form>
     </section>
@@ -78,42 +75,104 @@
 </main>
 
 <script>
-async function addBatch() {
-    const textarea = document.getElementById("batchUrls");
-    const urls = textarea.value.split("\n").map(x => x.trim()).filter(Boolean);
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function(char) {
+        return {"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"}[char];
+    });
+}
+
+async function addPlaylist(url) {
+    const response = await fetch("/api/playlist", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({url})
+    });
+    const data = await response.json();
+    const result = document.getElementById("playlistResult");
+
+    if (!response.ok) {
+        result.innerHTML = '<div class="message error">' + escapeHtml(data.error || "Unable to analyze playlist.") + '</div>';
+        return;
+    }
+
+    result.innerHTML =
+        '<div class="playlist-head"><strong>' + escapeHtml(data.title) + '</strong><span>' +
+        data.count + ' videos</span></div>' +
+        '<div class="playlist-actions"><button type="button" onclick="selectPlaylist(true)">Select all</button>' +
+        '<button type="button" onclick="selectPlaylist(false)">Clear</button>' +
+        '<button type="button" onclick="queueSelectedPlaylist()">Add selected to queue</button></div>' +
+        '<div class="playlist-list">' +
+        data.entries.map(function(item, index) {
+            return '<label class="playlist-item"><input class="playlist-check" type="checkbox" value="' +
+                escapeHtml(item.url) + '" checked><span>' + (index + 1) + '. ' +
+                escapeHtml(item.title) + '</span></label>';
+        }).join("") + '</div>';
+}
+
+function selectPlaylist(value) {
+    document.querySelectorAll(".playlist-check").forEach(function(input) {
+        input.checked = value;
+    });
+}
+
+async function queueSelectedPlaylist() {
+    const urls = Array.from(document.querySelectorAll(".playlist-check:checked")).map(function(input) {
+        return input.value;
+    });
     if (!urls.length) return;
 
+    const response = await fetch("/api/batch", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({urls, format_id: "bestvideo+bestaudio/best", mode: "video"})
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+        alert(data.error || "Unable to queue playlist.");
+        return;
+    }
+
+    refreshDownloads();
+}
+
+async function addBatch() {
+    const textarea = document.getElementById("batchUrls");
+    if (!textarea) return;
+    const urls = textarea.value.split("\n").map(x => x.trim()).filter(Boolean);
+    if (!urls.length) return;
     const res = await fetch("/api/batch", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({urls, format_id: "bestvideo+bestaudio/best", mode: "video"})
     });
-
     if (!res.ok) {
         alert((await res.json()).error || "Batch download failed.");
         return;
     }
-
     textarea.value = "";
     refreshDownloads();
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    const form = document.getElementById("downloadForm");
-    if (!form) return;
-
-    form.addEventListener("submit", async function(event) {
+    document.getElementById("playlistForm").addEventListener("submit", function(event) {
         event.preventDefault();
-        const response = await fetch(form.action, {method: "POST", body: new FormData(form)});
-        const data = await response.json().catch(function() { return {}; });
-
-        if (!response.ok) {
-            alert(data.error || "Unable to add the download.");
-            return;
-        }
-
-        refreshDownloads();
+        addPlaylist(document.getElementById("playlistUrl").value.trim());
     });
+
+    const form = document.getElementById("downloadForm");
+    if (form) {
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const response = await fetch(form.action, {method: "POST", body: new FormData(form)});
+            const data = await response.json().catch(function() { return {}; });
+            if (!response.ok) {
+                alert(data.error || "Unable to add the download.");
+                return;
+            }
+            refreshDownloads();
+        });
+    }
 });
 </script>
 <script src="{{ url_for('static', filename='js/queue.js') }}"></script>
