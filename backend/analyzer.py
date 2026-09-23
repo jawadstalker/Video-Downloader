@@ -26,13 +26,15 @@ def analyze_playlist(url):
         info = ydl.extract_info(url.strip(), download=False)
     entries = []
     for item in info.get("entries") or []:
-        if item and item.get("url"):
-            entries.append({
-                "id": item.get("id"),
-                "title": item.get("title") or "Untitled",
-                "url": item.get("url"),
-                "duration": item.get("duration")
-            })
+        if item:
+            item_url = item.get("webpage_url") or item.get("url")
+            if item_url:
+                entries.append({
+                    "id": item.get("id"),
+                    "title": item.get("title") or "Untitled",
+                    "url": item_url,
+                    "duration": item.get("duration")
+                })
     return {"title": info.get("title") or "Playlist", "count": len(entries), "entries": entries}
 
 def analyze(url):
@@ -53,7 +55,12 @@ def analyze(url):
         if not height or not f.get("format_id"):
             continue
 
-        key = (height, f.get("ext"), f.get("vcodec"), f.get("acodec"))
+        has_audio = f.get("acodec") not in (None, "none")
+        has_video = f.get("vcodec") not in (None, "none")
+        if not has_video:
+            continue
+
+        key = (height, f.get("ext"), has_audio)
         if key in seen:
             continue
         seen.add(key)
@@ -65,7 +72,7 @@ def analyze(url):
             "vcodec": f.get("vcodec", "none"),
             "acodec": f.get("acodec", "none"),
             "filesize": _size(f.get("filesize") or f.get("filesize_approx")),
-            "has_audio": f.get("acodec") not in (None, "none")
+            "has_audio": has_audio
         })
 
     formats.sort(key=lambda x: (x["height"], x["has_audio"]), reverse=True)

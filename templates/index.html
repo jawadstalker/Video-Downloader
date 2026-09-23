@@ -1,93 +1,26 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Video Downloader</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Downloader</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
-<main class="container">
-    <section class="hero">
-        <span class="eyebrow">MEDIA DOWNLOADER</span>
-        <h1>Download media<br><span>without the clutter.</span></h1>
-        <p>Analyze a URL, choose the quality, and download your media locally.</p>
-    </section>
-
-    <section class="card tools-card">
-<h2>Batch Downloads</h2>
-<textarea id="batchUrls" placeholder="Paste one URL per line..."></textarea>
-<button type="button" class="download" onclick="addBatch()">Add URLs to Queue</button>
-</section>
-
-<form class="search" method="post">
-        <input name="url" type="url" value="{{ url or '' }}" placeholder="Paste a video URL..." required>
-        <button type="submit">Analyze</button>
-    </form>
-
-    {% if message %}
-    <div class="message error">{{ message }}</div>
-    {% endif %}
-
-    {% if media %}
-    <section class="card">
-        <div class="media-head">
-            {% if media.thumbnail %}
-            <img src="{{ media.thumbnail }}" alt="Thumbnail">
-            {% endif %}
-            <div>
-                <span class="eyebrow">VIDEO</span>
-                <h2>{{ media.title }}</h2>
-                <p>{{ media.uploader }}</p>
-                {% if media.duration %}<small>Duration: {{ media.duration }}</small>{% endif %}
-            </div>
-        </div>
-
-        <form method="post" action="{{ url_for('download') }}">
-            <input type="hidden" name="url" value="{{ url }}">
-            <label for="format_id">Video Quality</label>
-            <select id="format_id" name="format_id" required>
-                {% for f in media.formats %}
-                <option value="{{ f.format_id }}">
-                    {{ f.height }}p · {{ f.ext|upper }} · {{ "Video + Audio" if f.has_audio else "Video only" }}{% if f.filesize %} · {{ f.filesize }}{% endif %}
-                </option>
-                {% endfor %}
-            </select>
-            <label for="mode">Download Type</label>
-            <select id="mode" name="mode">
-                <option value="video">Video (MP4)</option>
-                <option value="audio">Audio Only</option>
-            </select>
-
-            <label for="audio_format">Audio Format</label>
-            <select id="audio_format" name="audio_format">
-                <option value="mp3">MP3</option>
-                <option value="m4a">M4A</option>
-                <option value="wav">WAV</option>
-            </select>
-
-            <button class="download" type="submit">Add to Downloads</button>
-        </form>
-    </section>
-    {% endif %}
-<section class="card downloads-card">
-    <div class="section-head"><div><span class="eyebrow">DOWNLOAD MANAGER</span><h2>Downloads</h2></div></div>
-    <div id="downloads"></div>
-</section>
+<body><main class="container">
+<section class="hero"><span class="eyebrow">MEDIA DOWNLOADER</span><h1>Download media<br><span>without the clutter.</span></h1><p>Analyze a URL, choose the quality, and download your media locally.</p></section>
+<section class="card tools-card"><h2>Playlist</h2><form id="playlistForm"><input id="playlistUrl" type="url" placeholder="Paste a playlist URL..." required><button type="submit">Analyze Playlist</button></form><div id="playlistResult"></div></section>
+<form class="search" method="post"><input name="url" type="url" value="{{ url or '' }}" placeholder="Paste a video URL..." required><button type="submit">Analyze</button></form>
+{% if message %}<div class="message error">{{ message }}</div>{% endif %}
+{% if media %}<section class="card"><div class="media-head">{% if media.thumbnail %}<img src="{{ media.thumbnail }}" alt="Thumbnail">{% endif %}<div><span class="eyebrow">VIDEO</span><h2>{{ media.title }}</h2><p>{{ media.uploader }}</p>{% if media.duration %}<small>Duration: {{ media.duration }}</small>{% endif %}</div></div>
+<form id="downloadForm" method="post" action="{{ url_for('download_route') }}"><input type="hidden" name="url" value="{{ url }}"><label for="format_id">Video Quality</label><select id="format_id" name="format_id" required>{% for f in media.formats %}<option value="{{ f.format_id }}">{{ f.height }}p · {{ f.ext|upper }} · {{ "Video + Audio" if f.has_audio else "Video + Audio (merge)" }}{% if f.filesize %} · {{ f.filesize }}{% endif %}</option>{% endfor %}</select><label for="mode">Download Type</label><select id="mode" name="mode"><option value="video">Video</option><option value="audio">Audio Only</option></select><label for="audio_format">Audio Format</label><select id="audio_format" name="audio_format"><option value="mp3">MP3</option><option value="m4a">M4A</option><option value="wav">WAV</option></select><button class="download" type="submit">Add to Downloads</button></form>
+{% if media.subtitle_languages %}<div class="subtitle-box"><h3>Subtitles</h3><div class="subtitle-languages">{% for language in media.subtitle_languages %}<label><input type="checkbox" class="subtitle-check" value="{{ language }}"> {{ language }}</label>{% endfor %}</div><div class="subtitle-controls"><select id="subtitleFormat"><option value="srt">SRT</option><option value="vtt">VTT</option><option value="ass">ASS</option><option value="lrc">LRC</option></select><label><input type="checkbox" id="automaticSubs"> Automatic captions</label><button type="button" onclick="downloadSubtitles('{{ url }}')">Download Subtitles</button></div></div>{% endif %}
+</section>{% endif %}
+<section class="card downloads-card"><div class="section-head"><div><span class="eyebrow">DOWNLOAD MANAGER</span><h2>Downloads</h2></div></div><div id="downloads"></div></section>
 </main>
 <script>
-async function addBatch() {
-    const urls = document.getElementById("batchUrls").value.split("\n").map(x => x.trim()).filter(Boolean);
-    if (!urls.length) return;
-    const res = await fetch("/api/batch", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({urls, format_id:"bestvideo+bestaudio/best", mode:"video"})
-    });
-    if (!res.ok) alert((await res.json()).error || "Batch download failed.");
-    document.getElementById("batchUrls").value = "";
-    refreshDownloads();
-}
-</script>
-<script src="{{ url_for('static', filename='js/queue.js') }}"></script>
-</body>
-</html>
+function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]})}
+async function addPlaylist(url){const r=await fetch("/api/playlist",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});const d=await r.json(),el=document.getElementById("playlistResult");if(!r.ok){el.innerHTML='<div class="message error">'+escapeHtml(d.error||"Unable to analyze playlist.")+"</div>";return}el.innerHTML='<div class="playlist-head"><strong>'+escapeHtml(d.title)+'</strong><span>'+d.count+" videos</span></div><div class="playlist-actions"><button type="button" onclick="selectPlaylist(true)">Select all</button><button type="button" onclick="selectPlaylist(false)">Clear</button><button type="button" onclick="queueSelectedPlaylist()">Add selected to queue</button></div><div class="playlist-list">"+d.entries.map(function(i,n){return'<label class="playlist-item"><input class="playlist-check" type="checkbox" value="'+escapeHtml(i.url)+'" checked><span>'+(n+1)+". "+escapeHtml(i.title)+"</span></label>"}).join("")+"</div>"}
+function selectPlaylist(v){document.querySelectorAll(".playlist-check").forEach(function(i){i.checked=v})}
+async function queueSelectedPlaylist(){const urls=Array.from(document.querySelectorAll(".playlist-check:checked")).map(i=>i.value);if(!urls.length)return;const r=await fetch("/api/batch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({urls,format_id:"bestvideo+bestaudio/best",mode:"video"})});const d=await r.json();if(!r.ok){alert(d.error||"Unable to queue playlist.");return}refreshDownloads()}
+async function downloadSubtitles(url){const languages=Array.from(document.querySelectorAll(".subtitle-check:checked")).map(i=>i.value);if(!languages.length){alert("Select at least one language.");return}const r=await fetch("/api/subtitles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url,languages,format:document.getElementById("subtitleFormat").value,automatic:document.getElementById("automaticSubs").checked})});const d=await r.json();if(!r.ok)alert(d.error||"Subtitle download failed.")}
+document.addEventListener("DOMContentLoaded",function(){document.getElementById("playlistForm").addEventListener("submit",function(e){e.preventDefault();addPlaylist(document.getElementById("playlistUrl").value.trim())});const f=document.getElementById("downloadForm");if(f)f.addEventListener("submit",async function(e){e.preventDefault();const r=await fetch(f.action,{method:"POST",body:new FormData(f)}),d=await r.json().catch(function(){return{}});if(!r.ok){alert(d.error||"Unable to add the download.");return}refreshDownloads()})});
+</script><script src="{{ url_for('static', filename='js/queue.js') }}"></script></body></html>
