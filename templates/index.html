@@ -15,12 +15,12 @@
     </section>
 
     <section class="card tools-card">
-<h2>Batch Downloads</h2>
-<textarea id="batchUrls" placeholder="Paste one URL per line..."></textarea>
-<button type="button" class="download" onclick="addBatch()">Add URLs to Queue</button>
-</section>
+        <h2>Batch Downloads</h2>
+        <textarea id="batchUrls" placeholder="Paste one URL per line..."></textarea>
+        <button type="button" class="download" onclick="addBatch()">Add URLs to Queue</button>
+    </section>
 
-<form class="search" method="post">
+    <form class="search" method="post">
         <input name="url" type="url" value="{{ url or '' }}" placeholder="Paste a video URL..." required>
         <button type="submit">Analyze</button>
     </form>
@@ -43,7 +43,7 @@
             </div>
         </div>
 
-        <form method="post" action="{{ url_for('download') }}">
+        <form id="downloadForm" method="post" action="{{ url_for('download_route') }}">
             <input type="hidden" name="url" value="{{ url }}">
             <label for="format_id">Video Quality</label>
             <select id="format_id" name="format_id" required>
@@ -70,23 +70,51 @@
         </form>
     </section>
     {% endif %}
-<section class="card downloads-card">
-    <div class="section-head"><div><span class="eyebrow">DOWNLOAD MANAGER</span><h2>Downloads</h2></div></div>
-    <div id="downloads"></div>
-</section>
+
+    <section class="card downloads-card">
+        <div class="section-head"><div><span class="eyebrow">DOWNLOAD MANAGER</span><h2>Downloads</h2></div></div>
+        <div id="downloads"></div>
+    </section>
 </main>
+
 <script>
 async function addBatch() {
-    const urls = document.getElementById("batchUrls").value.split("\n").map(x => x.trim()).filter(Boolean);
+    const textarea = document.getElementById("batchUrls");
+    const urls = textarea.value.split("\n").map(x => x.trim()).filter(Boolean);
     if (!urls.length) return;
+
     const res = await fetch("/api/batch", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({urls, format_id:"bestvideo+bestaudio/best", mode:"video"})
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({urls, format_id: "bestvideo+bestaudio/best", mode: "video"})
     });
-    if (!res.ok) alert((await res.json()).error || "Batch download failed.");
-    document.getElementById("batchUrls").value = "";
+
+    if (!res.ok) {
+        alert((await res.json()).error || "Batch download failed.");
+        return;
+    }
+
+    textarea.value = "";
     refreshDownloads();
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("downloadForm");
+    if (!form) return;
+
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const response = await fetch(form.action, {method: "POST", body: new FormData(form)});
+        const data = await response.json().catch(function() { return {}; });
+
+        if (!response.ok) {
+            alert(data.error || "Unable to add the download.");
+            return;
+        }
+
+        refreshDownloads();
+    });
+});
 </script>
 <script src="{{ url_for('static', filename='js/queue.js') }}"></script>
 </body>

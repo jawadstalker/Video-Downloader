@@ -1,14 +1,22 @@
 import os
+import shutil
 import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+
 from yt_dlp import YoutubeDL
 
 DOWNLOAD_FOLDER = "downloads"
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-class DownloadPaused(Exception): pass
-class DownloadCancelled(Exception): pass
+
+class DownloadPaused(Exception):
+    pass
+
+
+class DownloadCancelled(Exception):
+    pass
+
 
 class DownloadManager:
     def __init__(self, max_workers=2):
@@ -85,41 +93,51 @@ class DownloadManager:
 
     def _download(self, job_id):
         with self.lock:
-            job = self.jobs[job_id]
+            job = self.jobs[job_id].copy()
 
         def hook(data):
             with self.lock:
-                j = self.jobs[job_id]
-                if j["cancel"]:
+                current = self.jobs[job_id]
+                if current["cancel"]:
                     raise DownloadCancelled()
-                if j["pause"]:
+                if current["pause"]:
                     raise DownloadPaused()
-                j["title"] = data.get("filename", j["title"]).split(os.sep)[-1]
+
+                filename = data.get("filename")
+                if filename:
+                    current["title"] = os.path.basename(filename)
+
                 if data.get("status") == "downloading":
-                    j["progress"] = round(data.get("_percent", 0), 1)
-                    j["speed"] = data.get("_speed_str")
-                    j["eta"] = data.get("_eta_str")
+                    total = data.get("total_bytes") or data.get("total_bytes_estimate")
+                    downloaded = data.get("downloaded_bytes")
+                    if total and downloaded is not None:
+                        current["progress"] = round(downloaded / total * 100, 1)
+                    current["speed"] = data.get("_speed_str")
+                    current["eta"] = data.get("_eta_str")
+                elif data.get("status") == "finished":
+                    current["progress"] = 100
+
+        opts = {
+            "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
+            "noplaylist": True,
+            "continuedl": True,
+            "progress_hooks": [hook],
+        }
 
         if job["mode"] == "audio":
-            opts = {
-                "format": "bestaudio/best",
-                "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
-                "noplaylist": True, "continuedl": True,
-                "progress_hooks": [hook],
-                "postprocessors": [{
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": job["audio_format"],
-                    "preferredquality": "192"
-                }]
-            }
+            if shutil.which("ffmpeg") is None:
+                raise RuntimeError("FFmpeg is required for audio extraction.")
+            opts["format"] = "bestaudio/best"
+            opts["postprocessors"] = [{
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": job["audio_format"],
+                "preferredquality": "192",
+            }]
         else:
-            opts = {
-                "format": f'{job["format_id"]}+bestaudio/best',
-                "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
-                "noplaylist": True, "continuedl": True,
-                "merge_output_format": "mp4",
-                "progress_hooks": [hook]
-            }
+            format_id = job["format_id"]
+            opts["format"] = format_id if "+" in format_id else f"{format_id}+bestaudio/best"
+            if shutil.which("ffmpeg") is not None:
+                opts["merge_output_format"] = "mp4"
 
         with YoutubeDL(opts) as ydl:
             ydl.download([job["url"]])
@@ -140,7 +158,9 @@ class DownloadManager:
 
     def cancel(self, job_id):
         with self.lock:
-            if job_id in self.jobs:
+            if job_id in self.jobs and self.jobs[job_id]["status"] in {
+                "queued", "downloading", "paused", "retrying"
+            }:
                 self.jobs[job_id]["cancel"] = True
                 return True
         return False
@@ -153,11 +173,14 @@ class DownloadManager:
             self.jobs[job_id]["error"] = None
             self.jobs[job_id]["status"] = "queued"
             self.jobs[job_id]["cancel"] = False
+            self.jobs[job_id]["pause"] = False
+            self.jobs[job_id]["progress"] = 0
         self.executor.submit(self._run, job_id)
         return True
 
     def all(self):
         with self.lock:
-            return list(self.jobs.values())
+            return [job.copy() for job in self.jobs.values()]
+
 
 manager = DownloadManager()
